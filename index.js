@@ -19,12 +19,27 @@ function getNumberOfRepos(req, res, next) {
     if (err) throw err;
 
     // response.body contains an array of public repositories
-    var repoNumber = response.body.length;
+    const repoNumber = response.body.length;
+    // set expiry to 1,800 seconds (30 minutes)
+    client.setex(org, 1800, repoNumber);
     res.send(respond(org, repoNumber));
   });
 };
 
-app.get('/repos', getNumberOfRepos);
+function cache(req, res, next) {
+  const org = req.query.org;
+  client.get(org, function (err, data) {
+    if (err) throw err;
+
+    if (data) {
+      res.send(respond(org,data));
+    } else {
+      next();
+    }
+  });
+}
+
+app.get('/repos', cache, getNumberOfRepos);
 
 app.listen(PORT, function () {
   console.log('app listening on port', PORT);
