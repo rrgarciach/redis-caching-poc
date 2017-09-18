@@ -1,8 +1,13 @@
-import express from 'express';
-import superagent from 'superagent';
+const express = require('express');
+const request = require('superagent');
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3030;
+
+const redis = require('redis');
+const REDIS_PORT = process.env.REDIS_PORT || 6379;
+
 const app = express();
+const client = redis.createClient(REDIS_PORT);
 
 function respond(org, numberOfRepos) {
   return `Organization "${org}" has ${numberOfRepos} public repositories.`;
@@ -10,7 +15,7 @@ function respond(org, numberOfRepos) {
 
 function getNumberOfRepos(req, res, next) {
   const org = req.query.org;
-  request.get(`https://api.github.com/orgs/${org}/repos`, function (err, response) {
+  request.get(`https://api.github.com/users/${org}/repos`, function (err, response) {
     if (err) throw err;
 
     // response.body contains an array of public repositories
